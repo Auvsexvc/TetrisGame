@@ -120,7 +120,7 @@ namespace TetrisGame
             int dropDistance = gameState.BlockDropDistance();
             foreach (var item in block.TilePositions())
             {
-                imageControls[item.Row + dropDistance, item.Column].Opacity = 0.15;
+                imageControls[item.Row + dropDistance, item.Column].Opacity = 0.35;
                 imageControls[item.Row + dropDistance, item.Column].Source = tileImages[block.Id];
             }
         }
@@ -140,7 +140,7 @@ namespace TetrisGame
         {
             if (gameState.CanHold)
             {
-                CanHoldText.Foreground = Brushes.Black;
+                CanHoldText.Foreground = Brushes.White;
             }
             else
             {

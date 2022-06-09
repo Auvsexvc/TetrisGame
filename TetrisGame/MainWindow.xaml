@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Tetris" Height="600" Width="800" MinHeight="600" MinWidth="800"
-        Foreground="Black"
-        FontFamily="Segoes UI Bold" FontSize="28"
+        Foreground="White"
+        FontFamily="UniDreamLED" FontSize="28"
         KeyDown="Window_KeyDown">
     <Grid>
         <Grid.RowDefinitions>
@@ -21,17 +21,19 @@
         </Grid.ColumnDefinitions>
 
         <Grid.Background>
-            <ImageBrush ImageSource="Assets/Background.png" />
+            <ImageBrush ImageSource="Assets/Background.jpg" />
         </Grid.Background>
         <Viewbox Grid.Row="1"
                  Grid.Column="1"
                  Margin="0,0,0,20">
-            <Canvas x:Name="GameCanvas"
+            <Border BorderThickness="1" BorderBrush="Gray">
+                <Canvas x:Name="GameCanvas"
                     Background="#101010"
                     Width="250"
                     Height="510"
                     ClipToBounds="True"
                     Loaded="GameCanvas_Loaded" />
+            </Border>
         </Viewbox>
 
         <TextBlock x:Name="ScoreText"
@@ -42,28 +44,32 @@
                    TextAlignment="Center" />
         <StackPanel Grid.Row="1"
                     Grid.Column="0"
-                    VerticalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,80"
                     HorizontalAlignment="Right">
             <TextBlock Text="Hold"
                        TextAlignment="Center" />
-
-            <Image x:Name="HoldImage"
-                   Margin="20"
-                   Width="125" />
+            <Border BorderThickness="1" BorderBrush="Gray" Margin="20">
+                <Image x:Name="HoldImage"
+                       Width="125" />
+            </Border>
             <TextBlock x:Name="CanHoldText"
                        Text="use hold"
+                       FontSize="18"
                        TextAlignment="Center" />
         </StackPanel>
 
         <StackPanel Grid.Row="1"
                     Grid.Column="2"
-                    VerticalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,98"
                     HorizontalAlignment="Left">
             <TextBlock Text="Next"
                        TextAlignment="Center" />
-            <Image x:Name="NextImage"
-                   Margin="20"
-                   Width="125" />
+            <Border BorderThickness="1" BorderBrush="Gray" Margin="20">
+                <Image x:Name="NextImage"
+                       Width="125" />
+            </Border>
         </StackPanel>
 
         <Grid x:Name="GameOverMenu"
