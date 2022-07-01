@@ -13,21 +13,9 @@ namespace TetrisGame
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const int delayDecrease = 25;
         private const int maxDelay = 750;
         private const int minDelay = 75;
-        private const int delayDecrease = 25;
-
-        private readonly ImageSource[] tileImages = new ImageSource[]
-        {
-            new BitmapImage(new Uri("Assets/TileEmpty.png", UriKind.Relative)),
-            new BitmapImage(new Uri("Assets/TileCyan.png", UriKind.Relative)),
-            new BitmapImage(new Uri("Assets/TileBlue.png", UriKind.Relative)),
-            new BitmapImage(new Uri("Assets/TileOrange.png", UriKind.Relative)),
-            new BitmapImage(new Uri("Assets/TileYellow.png", UriKind.Relative)),
-            new BitmapImage(new Uri("Assets/TileGreen.png", UriKind.Relative)),
-            new BitmapImage(new Uri("Assets/TilePurple.png", UriKind.Relative)),
-            new BitmapImage(new Uri("Assets/TileRed.png", UriKind.Relative)),
-        };
 
         private readonly ImageSource[] blockImages = new ImageSource[]
         {
@@ -43,12 +31,129 @@ namespace TetrisGame
 
         private readonly Image[,] imageControls;
 
+        private readonly ImageSource[] tileImages = new ImageSource[]
+                        {
+            new BitmapImage(new Uri("Assets/TileEmpty.png", UriKind.Relative)),
+            new BitmapImage(new Uri("Assets/TileCyan.png", UriKind.Relative)),
+            new BitmapImage(new Uri("Assets/TileBlue.png", UriKind.Relative)),
+            new BitmapImage(new Uri("Assets/TileOrange.png", UriKind.Relative)),
+            new BitmapImage(new Uri("Assets/TileYellow.png", UriKind.Relative)),
+            new BitmapImage(new Uri("Assets/TileGreen.png", UriKind.Relative)),
+            new BitmapImage(new Uri("Assets/TilePurple.png", UriKind.Relative)),
+            new BitmapImage(new Uri("Assets/TileRed.png", UriKind.Relative)),
+        };
+
         private GameState gameState = new();
 
         public MainWindow()
         {
             InitializeComponent();
             imageControls = SetupGameCanvas(gameState.Grid);
+        }
+
+        private void Draw(GameState gameState)
+        {
+            DrawGrid(gameState.Grid);
+            DrawGhostBlock(gameState.CurrentBlock);
+            DrawBlock(gameState.CurrentBlock);
+            DrawNextBlock(gameState.BlockQueue);
+            DrawHeldBlock(gameState.HeldBlock);
+            DrawCanHold();
+            ScoreText.Text = $"Score: {gameState.Score}";
+        }
+
+        private void DrawBlock(Block block)
+        {
+            foreach (var item in block.TilePositions())
+            {
+                imageControls[item.Row, item.Column].Source = tileImages[block.Id];
+            }
+        }
+
+        private void DrawCanHold()
+        {
+            if (gameState.CanHold)
+            {
+                CanHoldText.Foreground = Brushes.White;
+            }
+            else
+            {
+                CanHoldText.Foreground = Brushes.Gray;
+            }
+        }
+
+        private void DrawGhostBlock(Block block)
+        {
+            int dropDistance = gameState.BlockDropDistance();
+            foreach (var item in block.TilePositions())
+            {
+                imageControls[item.Row + dropDistance, item.Column].Opacity = 0.35;
+                imageControls[item.Row + dropDistance, item.Column].Source = tileImages[block.Id];
+            }
+        }
+
+        private void DrawGrid(Grid grid)
+        {
+            for (int r = 0; r < grid.Rows; r++)
+            {
+                for (int c = 0; c < grid.Columns; c++)
+                {
+                    int id = grid[r, c];
+                    imageControls[r, c].Opacity = 1;
+                    imageControls[r, c].Source = tileImages[id];
+                }
+            }
+        }
+
+        private void DrawHeldBlock(Block? heldBlock)
+        {
+            if (heldBlock == null)
+            {
+                HoldImage.Source = blockImages[0];
+            }
+            else
+            {
+                HoldImage.Source = blockImages[heldBlock.Id];
+            }
+        }
+
+        private void DrawNextBlock(BlockQueue blockQueue)
+        {
+            Block next = blockQueue.NextBlock;
+            NextImage.Source = blockImages[next.Id];
+        }
+
+        private async void GameCanvas_Loaded(object sender, RoutedEventArgs e)
+        {
+            await GameLoop();
+        }
+
+        private async Task GameLoop()
+        {
+            Draw(gameState);
+
+            while (!gameState.GameOver)
+            {
+                int delay = Math.Max(minDelay, maxDelay - (gameState.Score * delayDecrease));
+                await Task.Delay(delay);
+                gameState.MoveBlockDown();
+                Draw(gameState);
+            }
+
+            GameOverMenu.Visibility = Visibility.Visible;
+            FinalScoreText.Text = $"Score: {gameState.Score}";
+        }
+
+        private async void PlayAgain_Click(object sender, RoutedEventArgs e)
+        {
+            gameState = new GameState();
+            GameOverMenu.Visibility = Visibility.Hidden;
+            await GameLoop();
+        }
+
+        private void Quit_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
 
         private Image[,] SetupGameCanvas(Grid grid)
@@ -74,94 +179,6 @@ namespace TetrisGame
             }
 
             return imageControls;
-        }
-
-        private void DrawGrid(Grid grid)
-        {
-            for (int r = 0; r < grid.Rows; r++)
-            {
-                for (int c = 0; c < grid.Columns; c++)
-                {
-                    int id = grid[r, c];
-                    imageControls[r, c].Opacity = 1;
-                    imageControls[r, c].Source = tileImages[id];
-                }
-            }
-        }
-
-        private void DrawBlock(Block block)
-        {
-            foreach (var item in block.TilePositions())
-            {
-                imageControls[item.Row, item.Column].Source = tileImages[block.Id];
-            }
-        }
-
-        private void DrawNextBlock(BlockQueue blockQueue)
-        {
-            Block next = blockQueue.NextBlock;
-            NextImage.Source = blockImages[next.Id];
-        }
-
-        private void DrawHeldBlock(Block? heldBlock)
-        {
-            if (heldBlock == null)
-            {
-                HoldImage.Source = blockImages[0];
-            }
-            else
-            {
-                HoldImage.Source = blockImages[heldBlock.Id];
-            }
-        }
-
-        private void DrawGhostBlock(Block block)
-        {
-            int dropDistance = gameState.BlockDropDistance();
-            foreach (var item in block.TilePositions())
-            {
-                imageControls[item.Row + dropDistance, item.Column].Opacity = 0.35;
-                imageControls[item.Row + dropDistance, item.Column].Source = tileImages[block.Id];
-            }
-        }
-
-        private void Draw(GameState gameState)
-        {
-            DrawGrid(gameState.Grid);
-            DrawGhostBlock(gameState.CurrentBlock);
-            DrawBlock(gameState.CurrentBlock);
-            DrawNextBlock(gameState.BlockQueue);
-            DrawHeldBlock(gameState.HeldBlock);
-            DrawCanHold();
-            ScoreText.Text = $"Score: {gameState.Score}";
-        }
-
-        private void DrawCanHold()
-        {
-            if (gameState.CanHold)
-            {
-                CanHoldText.Foreground = Brushes.White;
-            }
-            else
-            {
-                CanHoldText.Foreground = Brushes.Gray;
-            }
-        }
-
-        private async Task GameLoop()
-        {
-            Draw(gameState);
-
-            while (!gameState.GameOver)
-            {
-                int delay = Math.Max(minDelay, maxDelay - (gameState.Score * delayDecrease));
-                await Task.Delay(delay);
-                gameState.MoveBlockDown();
-                Draw(gameState);
-            }
-
-            GameOverMenu.Visibility = Visibility.Visible;
-            FinalScoreText.Text = $"Score: {gameState.Score}";
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
@@ -206,23 +223,6 @@ namespace TetrisGame
             }
 
             Draw(gameState);
-        }
-
-        private async void GameCanvas_Loaded(object sender, RoutedEventArgs e)
-        {
-            await GameLoop();
-        }
-
-        private async void PlayAgain_Click(object sender, RoutedEventArgs e)
-        {
-            gameState = new GameState();
-            GameOverMenu.Visibility = Visibility.Hidden;
-            await GameLoop();
-        }
-
-        private void Quit_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
         }
     }
 }

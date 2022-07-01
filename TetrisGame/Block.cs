@@ -4,29 +4,29 @@ namespace TetrisGame
 {
     internal abstract class Block
     {
-        protected abstract Position[][] Tiles { get; }
-        protected abstract Position StartOffset { get; }
-        public abstract int Id { get; }
-
-        private int rotationState;
         private readonly Position offset;
+        private int rotationState;
 
         protected Block()
         {
             offset = new Position(StartOffset.Row, StartOffset.Column);
         }
 
-        public IEnumerable<Position> TilePositions()
+        public abstract int Id { get; }
+        protected abstract Position StartOffset { get; }
+        protected abstract Position[][] Tiles { get; }
+
+        public void Move(int rows, int columns)
         {
-            foreach (var item in Tiles[rotationState])
-            {
-                yield return new Position(item.Row + offset.Row, item.Column + offset.Column);
-            }
+            offset.Row += rows;
+            offset.Column += columns;
         }
 
-        public void RotateCW()
+        public void Reset()
         {
-            rotationState = (rotationState + 1) % Tiles.Length;
+            rotationState = 0;
+            offset.Row = StartOffset.Row;
+            offset.Column = StartOffset.Column;
         }
 
         public void RotateCCW()
@@ -41,17 +41,17 @@ namespace TetrisGame
             }
         }
 
-        public void Move(int rows, int columns)
+        public void RotateCW()
         {
-            offset.Row += rows;
-            offset.Column += columns;
+            rotationState = (rotationState + 1) % Tiles.Length;
         }
 
-        public void Reset()
+        public IEnumerable<Position> TilePositions()
         {
-            rotationState = 0;
-            offset.Row = StartOffset.Row;
-            offset.Column = StartOffset.Column;
+            foreach (var item in Tiles[rotationState])
+            {
+                yield return new Position(item.Row + offset.Row, item.Column + offset.Column);
+            }
         }
     }
 }

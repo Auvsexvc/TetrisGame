@@ -6,6 +6,18 @@ namespace TetrisGame
     {
         private Block currentBlock;
 
+        public GameState()
+        {
+            Grid = new Grid(22, 10);
+            BlockQueue = new BlockQueue();
+            currentBlock = BlockQueue.GetAndUpdate();
+            CanHold = true;
+        }
+
+        public BlockQueue BlockQueue { get; }
+
+        public bool CanHold { get; private set; }
+
         public Block CurrentBlock
         {
             get => currentBlock;
@@ -26,32 +38,27 @@ namespace TetrisGame
             }
         }
 
-        public Grid Grid { get; }
-        public BlockQueue BlockQueue { get; }
         public bool GameOver { get; private set; }
-        public int Score { get; private set; }
+        public Grid Grid { get; }
         public Block? HeldBlock { get; private set; }
-        public bool CanHold { get; private set; }
+        public int Score { get; private set; }
 
-        public GameState()
+        public int BlockDropDistance()
         {
-            Grid = new Grid(22, 10);
-            BlockQueue = new BlockQueue();
-            currentBlock = BlockQueue.GetAndUpdate();
-            CanHold = true;
-        }
+            int drop = Grid.Rows;
 
-        private bool BlockFits()
-        {
             foreach (var item in CurrentBlock.TilePositions())
             {
-                if (!Grid.IsEmpty(item.Row, item.Column))
-                {
-                    return false;
-                }
+                drop = Math.Min(drop, TileDropDistance(item));
             }
 
-            return true;
+            return drop;
+        }
+
+        public void DropBlock()
+        {
+            CurrentBlock.Move(BlockDropDistance(), 0);
+            PlaceBlock();
         }
 
         public void HoldBlock()
@@ -72,23 +79,14 @@ namespace TetrisGame
             CanHold = false;
         }
 
-        public void RotateBlockCW()
+        public void MoveBlockDown()
         {
-            CurrentBlock.RotateCW();
+            CurrentBlock.Move(1, 0);
 
             if (!BlockFits())
             {
-                CurrentBlock.RotateCCW();
-            }
-        }
-
-        public void RotateBlockCCW()
-        {
-            CurrentBlock.RotateCCW();
-
-            if (!BlockFits())
-            {
-                CurrentBlock.RotateCW();
+                CurrentBlock.Move(-1, 0);
+                PlaceBlock();
             }
         }
 
@@ -112,6 +110,41 @@ namespace TetrisGame
             }
         }
 
+        public void RotateBlockCCW()
+        {
+            CurrentBlock.RotateCCW();
+
+            if (!BlockFits())
+            {
+                CurrentBlock.RotateCW();
+            }
+        }
+
+        public void RotateBlockCW()
+        {
+            CurrentBlock.RotateCW();
+
+            if (!BlockFits())
+            {
+                CurrentBlock.RotateCCW();
+            }
+        }
+
+        private bool BlockFits()
+        {
+            foreach (var item in CurrentBlock.TilePositions())
+            {
+                if (!Grid.IsEmpty(item.Row, item.Column))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool IsGameOver() => !(Grid.IsRowEmpty(0) && Grid.IsRowEmpty(1));
+
         private void PlaceBlock()
         {
             foreach (var item in CurrentBlock.TilePositions())
@@ -132,17 +165,6 @@ namespace TetrisGame
             }
         }
 
-        public void MoveBlockDown()
-        {
-            CurrentBlock.Move(1, 0);
-
-            if (!BlockFits())
-            {
-                CurrentBlock.Move(-1, 0);
-                PlaceBlock();
-            }
-        }
-
         private int TileDropDistance(Position p)
         {
             int drop = 0;
@@ -154,25 +176,5 @@ namespace TetrisGame
 
             return drop;
         }
-
-        public int BlockDropDistance()
-        {
-            int drop = Grid.Rows;
-
-            foreach (var item in CurrentBlock.TilePositions())
-            {
-                drop = Math.Min(drop, TileDropDistance(item));
-            }
-
-            return drop;
-        }
-
-        public void DropBlock()
-        {
-            CurrentBlock.Move(BlockDropDistance(), 0);
-            PlaceBlock();
-        }
-
-        private bool IsGameOver() => !(Grid.IsRowEmpty(0) && Grid.IsRowEmpty(1));
     }
 }

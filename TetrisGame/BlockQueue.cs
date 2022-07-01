@@ -17,14 +17,12 @@ namespace TetrisGame
 
         private readonly Random random = new();
 
-        public Block NextBlock { get; private set; }
-
         public BlockQueue()
         {
             NextBlock = RandomBlock();
         }
 
-        private Block RandomBlock() => blocks[random.Next(blocks.Length)];
+        public Block NextBlock { get; private set; }
 
         public Block GetAndUpdate()
         {
@@ -38,5 +36,7 @@ namespace TetrisGame
 
             return block;
         }
+
+        private Block RandomBlock() => blocks[random.Next(blocks.Length)];
     }
 }
